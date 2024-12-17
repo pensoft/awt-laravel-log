@@ -7,8 +7,6 @@
     "authors": [
         {"name": "Georgi Zhelezov", "email": "g.zhelezov@pensoft.net"}
     ],
-    "minimum-stability": "stable",
-    "prefer-stable": true,
     "require": {
         "php": "^8.0",
         "elasticsearch/elasticsearch": "^8.16",
@@ -25,5 +23,7 @@
                 "Pensoft\\AwtLaravelLog\\ServiceProvider"
             ]
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
