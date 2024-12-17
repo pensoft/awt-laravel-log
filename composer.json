@@ -1,5 +1,5 @@
 {
-    "name": "pensoft/awt-laravel-log",
+    "name": "howkins/awt-laravel-log",
     "description": "AWT Laravel Log is a small library that sent to Elasticsearch.",
     "keywords": [],
     "license": "MIT",
@@ -11,6 +11,9 @@
         "elasticsearch/elasticsearch": "^8.16",
         "monolog/monolog": "^3.0"
     },
+    "type": "library",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Pensoft\\AwtLaravelLog\\": "src/Pensoft/AwtLaravelLog"
@@ -22,7 +25,5 @@
                 "Pensoft\\AwtLaravelLog\\ServiceProvider"
             ]
         }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }
