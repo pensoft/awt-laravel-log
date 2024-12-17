@@ -2,10 +2,10 @@
 // phpcs:ignoreFile
 namespace Pensoft\AwtLaravelLog;
 
-use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+use Illuminate\Support\ServiceProvider;
 use Pensoft\AwtLaravelLog\LogElasticsearchService;
 
-class ServiceProvider extends IlluminateServiceProvider
+class AwtLaravelLogServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.

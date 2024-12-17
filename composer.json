@@ -16,13 +16,13 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Pensoft\\AwtLaravelLog\\": "src/Pensoft/AwtLaravelLog"
+            "Pensoft\\AwtLaravelLog\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Pensoft\\AwtLaravelLog\\ServiceProvider"
+                "Pensoft\\AwtLaravelLog\\AwtLaravelLogServiceProvider"
             ]
         }
     }
