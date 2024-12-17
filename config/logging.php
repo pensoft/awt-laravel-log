@@ -1,6 +1,5 @@
 <?php
 
-
 return [
     'elasticsearch' => [
         'driver' => 'monolog',
@@ -29,4 +28,3 @@ return [
         ]
     ]
 ];
-
