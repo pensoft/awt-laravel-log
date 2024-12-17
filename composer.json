@@ -1,6 +1,5 @@
 {
     "name": "pensoft/awt-laravel-log",
-    "type": "library",
     "description": "AWT Laravel Log is a small library that sent to Elasticsearch.",
     "keywords": [],
     "license": "MIT",
