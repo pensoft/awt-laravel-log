@@ -3,7 +3,6 @@
 namespace Pensoft\AwtLaravelLog;
 
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
@@ -19,24 +18,46 @@ use Throwable;
 class LogElasticsearchService
 {
     /**
-     * @param Throwable $e Throwable.
+     * Construct.
+     * 
+     * @param public $channel Channel.
+     */
+    public function __construct(public $channel)
+    {
+        
+    }
+
+
+    /**
+     * Log with Throwable exception type error.
+     * 
+     * @param string $message Message of exception.
+     * @param array  $context Context array.
+     * 
      * @return void
      */
-    public function __invoke(Throwable $e): void
+    public function error(string $message, array $context = []): void
     {
-        if ((app()->runningUnitTests()
-            && !app()->hasDebugModeEnabled())
-            || app()->runningInConsole()) {
-            return;
-        }
+        Log::channel($this->channel)->error($message, $context);
+    }
 
-        $code = $e->getCode() ?: 500;
-        $response = new Response('', $code);
-
-        if ($response->isInvalid() or $response->isServerError()) {
-            Log::channel('elasticsearch')->error($e->getMessage(), [
-                'exception' => $e
-            ]);
-        }
+    /**
+     * Log with Throwable exception type error.
+     * 
+     * @param Throwable $exception Throwable.
+     * 
+     * @return void
+     */
+    public function throw(Throwable $exception): void
+    {
+        $message = $exception->getMessage();
+        $context = [
+            'code' => $exception->getCode(),
+            'line' => $exception->getLine(),
+            'file' => $exception->getFile(),
+            'trace' => $exception->getTrace(),
+            'traceAsString' => $exception->getTraceAsString()
+        ];
+        $this->error($message, $context);
     }
 }
