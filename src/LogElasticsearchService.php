@@ -3,7 +3,6 @@
 namespace Pensoft\AwtLaravelLog;
 
 use Illuminate\Support\Facades\Log;
-use Elastic\Elasticsearch\Client;
 use Throwable;
 
 /**
@@ -23,7 +22,7 @@ class LogElasticsearchService
      * 
      * @param public $channel Channel.
      */
-    public function __construct(public $channel, public Client $client )
+    public function __construct(public $channel, public $client )
     {
         
     }
