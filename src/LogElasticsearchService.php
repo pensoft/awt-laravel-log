@@ -17,14 +17,18 @@ use Throwable;
  */
 class LogElasticsearchService
 {
+    protected $channel;
+    protected $client;
+
     /**
      * Construct.
      * 
      * @param public $channel Channel.
      */
-    public function __construct(public $channel, public $client )
+    public function __construct($channel, $client)
     {
-        
+        $this->channel = $channel;
+        $this->client = $client;
     }
 
     /**
