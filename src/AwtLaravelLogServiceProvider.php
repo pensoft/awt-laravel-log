@@ -59,9 +59,9 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
             return $logManager;
 
         });
-
-        $this->app->singleton(LogElasticsearchService::class, function () use ($client) {
-            return new LogElasticsearchService($this->channel, $client);
+        $channel = $this->channel;
+        $this->app->singleton(LogElasticsearchService::class, function () use ($channel, $client) {
+            return new LogElasticsearchService($channel, $client);
         });
     }
 }
