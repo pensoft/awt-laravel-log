@@ -3,6 +3,7 @@
 namespace Pensoft\AwtLaravelLog;
 
 use Illuminate\Support\Facades\Log;
+use Elastic\Elasticsearch\Client;
 use Throwable;
 
 /**
@@ -22,11 +23,24 @@ class LogElasticsearchService
      * 
      * @param public $channel Channel.
      */
-    public function __construct(public $channel)
+    public function __construct(public $channel, public Client $client )
     {
         
     }
 
+    /**
+     * Ping connections in Elasticsearch.
+     * 
+     * @return mixed
+     */
+    public function isConnected()
+    {
+        try {
+            return $this->client->ping()->asBool();
+        } catch( \Exception $e ) {
+            return false;
+        }
+    }
 
     /**
      * Log with Throwable exception type error.
