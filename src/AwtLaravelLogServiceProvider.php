@@ -26,20 +26,22 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../config/logging.php', 'logging.channels'
         );
+
+        $config = config('logging.channels.elasticsearch.elastic');
+        $client = ClientBuilder::create()
+            ->setHosts($config['host'])
+            ->setSSLVerification($config['ssl_verification'])
+            ->setBasicAuthentication(
+                $config['username'],
+                $config['password'],
+            )
+            ->build();
         
-        $this->app->extend('log', function(LogManager $logManager, $app){
+        $this->app->extend('log', function(LogManager $logManager, $app) use ($client){
             $channel = $this->channel;
-            $logManager->extend('monolog', function (Application $app, array $config) use ($channel){
+            $logManager->extend('monolog', function (Application $app, array $config) use ($channel, $client){
                 $config_elastic = $config['elastic'];
                 $index = $config_elastic['index'];
-                $client = ClientBuilder::create()
-                    ->setHosts($config_elastic['host'])
-                    ->setSSLVerification($config_elastic['ssl_verification'])
-                    ->setBasicAuthentication(
-                        $config_elastic['username'],
-                        $config_elastic['password'],
-                    )
-                    ->build();
                 $options = [
                     'index' => $index,
                     'ignore_error' => false,
@@ -58,8 +60,8 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
 
         });
 
-        $this->app->singleton(LogElasticsearchService::class, function () {
-            return new LogElasticsearchService($this->channel);
+        $this->app->singleton(LogElasticsearchService::class, function () use ($client) {
+            return new LogElasticsearchService($this->channel, $client);
         });
     }
 }
