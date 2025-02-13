@@ -27,19 +27,22 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
             __DIR__ . '/../config/logging.php', 'logging.channels'
         );
 
-        $config = config('logging.channels.elasticsearch.elastic');
-        $client = ClientBuilder::create()
-            ->setHosts($config['host'])
-            ->setSSLVerification($config['ssl_verification'])
-            ->setBasicAuthentication(
-                $config['username'],
-                $config['password'],
-            )
-            ->build();
         
-        $this->app->extend('log', function(LogManager $logManager, $app) use ($client){
-            $channel = $this->channel;
-            $logManager->extend('monolog', function (Application $app, array $config) use ($channel, $client){
+        $this->app->singleton('elastic_client', function ($app) {
+            $config = config('logging.channels.elasticsearch.elastic');
+            return ClientBuilder::create()
+                ->setHosts($config['host'])
+                ->setSSLVerification($config['ssl_verification'])
+                ->setBasicAuthentication(
+                    $config['username'],
+                    $config['password'],
+                )
+                ->build();
+        });
+        
+        $this->app->extend('log', function(LogManager $logManager, $app) {
+            $logManager->extend('monolog', function (Application $app, array $config){
+                $client = $app->make('elastic_client');
                 $config_elastic = $config['elastic'];
                 $index = $config_elastic['index'];
                 $options = [
@@ -51,7 +54,7 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
                 
                 $formatter = new ElasticsearchFormatter($index, 'doc');
                 $handler->setFormatter($formatter);
-                $logger = new Logger($channel);
+                $logger = new Logger($config['channel']);
                 $logger->pushHandler($handler);
                 $logger->pushProcessor(new DefaultContextProcessor);
                 return $logger;
@@ -59,9 +62,12 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
             return $logManager;
 
         });
-        $channel = $this->channel;
-        $this->app->singleton(LogElasticsearchService::class, function () use ($channel, $client) {
-            return new LogElasticsearchService($channel, $client);
+
+        $this->app->singleton(LogElasticsearchService::class, function ($app) {
+            $config = config('logging.channels.elasticsearch');
+            $client = $app->make('elastic_client');
+            // dd($config, $client);
+            return new LogElasticsearchService($config['channel'], $client);
         });
     }
 }
