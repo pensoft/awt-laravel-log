@@ -3,6 +3,7 @@
 namespace Pensoft\AwtLaravelLog;
 
 use Illuminate\Support\Facades\Log;
+use Pensoft\AwtErrorFormatter\ErrorPayloadFormatter;
 use Throwable;
 
 /**
