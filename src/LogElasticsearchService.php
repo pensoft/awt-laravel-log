@@ -69,13 +69,17 @@ class LogElasticsearchService
     public function throw(Throwable $exception): void
     {
         $message = $exception->getMessage();
-        $context = [
-            'code' => $exception->getCode(),
-            'line' => $exception->getLine(),
-            'file' => $exception->getFile(),
-            'trace' => $exception->getTrace(),
-            'traceAsString' => $exception->getTraceAsString()
-        ];
+        $request = request() ?? [];
+        $appName = env('APP_NAME', 'UNKNOWN_APP_NAME');
+        $hostname = env('HOSTNAME', 'UNKNOWN_HOSTNAME_NAME');
+        // Format the error payload according to this repo
+        // https://github.com/pensoft/awt-error-formatter
+        $context = ErrorPayloadFormatter::format(
+            $request,
+            $exception,
+            $appName,
+            $hostname
+        );
         $this->error($message, $context);
     }
 }
