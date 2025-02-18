@@ -42,25 +42,27 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
         
         $this->app->extend('log', function(LogManager $logManager, $app) {
             $logManager->extend('monolog', function (Application $app, array $config){
-                $client = $app->make('elastic_client');
-                $config_elastic = $config['elastic'];
-                $index = $config_elastic['index'];
-                $options = [
-                    'index' => $index,
-                    'ignore_error' => false,
-                ];
-                $level = Logger::toMonologLevel($config['level']);
-                $handler = new ElasticsearchHandler($client, $options, $level);
-                
-                $formatter = new ElasticsearchFormatter($index, 'doc');
-                $handler->setFormatter($formatter);
-                $logger = new Logger($config['channel']);
-                $logger->pushHandler($handler);
-                $logger->pushProcessor(new DefaultContextProcessor);
-                return $logger;
+                if(isset($config['elastic'])) {
+                    $client = $app->make('elastic_client');
+                    $config_elastic = $config['elastic'];
+                    $index = $config_elastic['index'];
+                    $options = [
+                        'index' => $index,
+                        'ignore_error' => false,
+                    ];
+                    $level = Logger::toMonologLevel($config['level']);
+                    $handler = new ElasticsearchHandler($client, $options, $level);
+
+                    $formatter = new ElasticsearchFormatter($index, 'doc');
+                    $handler->setFormatter($formatter);
+                    $logger = new Logger($config['channel']);
+                    $logger->pushHandler($handler);
+                    $logger->pushProcessor(new DefaultContextProcessor);
+                    return $logger;
+                }
+                return new Logger(env('LOG_CHANNEL', 'stack'));
             });
             return $logManager;
-
         });
 
         $this->app->singleton(LogElasticsearchService::class, function ($app) {
