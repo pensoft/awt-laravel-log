@@ -10,6 +10,10 @@ You can install the package using Composer:
 
 ```bash
 composer require pensoft/awt-laravel-log
+
+// and run 
+
+php artisan vendor:publish --provider="Pensoft\AwtLaravelLog\AwtLaravelLogServiceProvider"
 ```
 
 ---
@@ -33,15 +37,15 @@ $this->reportable(function (Throwable $e) {
 
 ### 2. Log to Elasticsearch using Laravel's Log facade
 
-You can log messages to Elasticsearch by using the `Log` facade, specifying the `elasticsearch` channel that you've defined in the `config/logging.php` file.
+You can log messages to Elasticsearch by using the `Log` facade, specifying the `elastic` channel that you've defined in the `config/logging.php` file.
 
 ```php
 use Illuminate\Support\Facades\Log;
 
-Log::channel('elasticsearch')->error('Message here!', $context = []);
+Log::channel('elastic')->error('Message here!', $context = []);
 ```
 
-- **channel**: Here, we specify the `elasticsearch` channel, which was defined in the configuration file.
+- **channel**: Here, we specify the `elastic` channel, which was defined in the configuration file.
 - **error**: The log level (in this case, an error). You can use other log levels like `info`, `warning`, `critical`, etc., depending on your needs.
 - **context**: An optional array of context that can be passed to provide more details along with the log message.
 
@@ -84,21 +88,27 @@ To configure the package to use Elasticsearch, you can modify the config/logging
 
 Example Configuration:
 ```php
-return [
-    'elasticsearch' => [
-        'driver' => 'monolog',
-        'level' => env('LOG_LEVEL', 'debug'),
-        'elastic' => [
-            'host' => [env('ELASTICSEARCH_HOST', 'http://')],
-            'ssl_verification' => env('ELASTICSEARCH_SSL_VERIFICATION', false),
-            'username' => env('ELASTICSEARCH_USERNAME', ''),
-            'password' => env('ELASTICSEARCH_PASSWORD', ''),
-            'index' => env('ELASTICSEARCH_LOG_INDEX', 'monolog'),
-        ]
-    ]
-];
+env('LOGGING_CHANNEL_ELASTIC', 'elastic') => [
+    'driver' => 'monolog',
+    'level' => env('LOG_LEVEL', 'debug'),
+    'handler' => ElasticsearchHandler::class,
+    'formatter' => ElasticsearchFormatter::class,
+],
 ```
 ---
+
+To configure the elastic you can modify config/elastic.php file. You will add the following configuration to the file to define the necessary settings:
+Example Configuration:
+```php
+return [
+    'host' => [env('ELASTICSEARCH_HOST', 'http://localhost:9200')],
+    'ssl_verification' => env('ELASTICSEARCH_SSL_VERIFICATION', false),
+    'username' => env('ELASTICSEARCH_USERNAME', ''),
+    'password' => env('ELASTICSEARCH_PASSWORD', ''),
+    'index' => env('ELASTICSEARCH_LOG_INDEX', 'monolog'),
+    'type' => env('ELASTICSEARCH_TYPE', 'doc')
+];
+```
 
 ## Requirements
 
