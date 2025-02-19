@@ -3,18 +3,24 @@
 namespace Pensoft\AwtLaravelLog;
 
 use Pensoft\AwtLaravelLog\LogElasticsearchService;
-use Pensoft\AwtLaravelLog\Processors\DefaultContextProcessor;
-use Illuminate\Log\LogManager;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Contracts\Foundation\Application;
-use Monolog\Logger;
 use Monolog\Handler\ElasticsearchHandler;
 use Monolog\Formatter\ElasticsearchFormatter;
 use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Client;
+
 
 class AwtLaravelLogServiceProvider extends ServiceProvider
 {
     protected $channel = 'elasticsearch';
+
+    public function boot()
+    {
+        $this->publishes([
+            __DIR__.'/../config/elastic.php' => config_path('elastic.php'),
+        ], 'config');
+    }
+
     /**
      * Register any application services.
      *
@@ -22,14 +28,8 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // Merge the configuration into the app
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/logging.php', 'logging.channels'
-        );
-
-        
-        $this->app->singleton('elastic_client', function ($app) {
-            $config = config('logging.channels.elasticsearch.elastic');
+        $this->app->bind(Client::class, function ($app) {
+            $config = config('elastic');
             return ClientBuilder::create()
                 ->setHosts($config['host'])
                 ->setSSLVerification($config['ssl_verification'])
@@ -39,37 +39,25 @@ class AwtLaravelLogServiceProvider extends ServiceProvider
                 )
                 ->build();
         });
-        
-        $this->app->extend('log', function(LogManager $logManager, $app) {
-            $logManager->extend('monolog', function (Application $app, array $config){
-                if(isset($config['elastic'])) {
-                    $client = $app->make('elastic_client');
-                    $config_elastic = $config['elastic'];
-                    $index = $config_elastic['index'];
-                    $options = [
-                        'index' => $index,
-                        'ignore_error' => false,
-                    ];
-                    $level = Logger::toMonologLevel($config['level']);
-                    $handler = new ElasticsearchHandler($client, $options, $level);
 
-                    $formatter = new ElasticsearchFormatter($index, 'doc');
-                    $handler->setFormatter($formatter);
-                    $logger = new Logger($config['channel']);
-                    $logger->pushHandler($handler);
-                    $logger->pushProcessor(new DefaultContextProcessor);
-                    return $logger;
-                }
-                return new Logger(env('LOG_CHANNEL', 'stack'));
-            });
-            return $logManager;
+        $this->app->bind(ElasticsearchFormatter::class, function ($app) {
+            $config = config('elastic');
+            return new ElasticsearchFormatter($config['index'], $config['type']);
+        });
+
+        $this->app->bind(ElasticsearchHandler::class, function ($app) {
+            $config = config('elastic');
+            return new ElasticsearchHandler($app->make(Client::class), [
+                'index'        => $config['index'],
+                'type'         => $config['type'],
+                'ignore_error' => false,
+            ]);
         });
 
         $this->app->singleton(LogElasticsearchService::class, function ($app) {
-            $config = config('logging.channels.elasticsearch');
-            $client = $app->make('elastic_client');
-            // dd($config, $client);
-            return new LogElasticsearchService($config['channel'], $client);
+            $channel = env('LOGGING_CHANNEL_ELASTIC', 'elastic');
+            $client = $app->make(Client::class);
+            return new LogElasticsearchService($channel, $client);
         });
     }
 }
